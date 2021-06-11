@@ -1,0 +1,8 @@
+Nom_vaccin;Efficacite_% ;Cas ;GMT_Vaccin;Vaccin/HCS;GMT_Elisa;Vaccin/HCSElisa
+Pfizer/BioNTech;94.6;178;361;3.8;9136;14.48
+Moderna;94.1;196;360;3.4;558905;15
+Gamaleya;91.6;78;44.5;1.4;8996;7.1
+Oxford/AstraZeneca;66.7;332;451;1.1;26251;0.80
+Sinovac;50.4;252;28;0.17;1094;0.09
+Novarax;89.3;62;3906;4.0;63160;7.6
+Janssen;65.5;437;224;0.43;478;0.54
