@@ -1,3 +1,4 @@
+# Ouvrir la base de données pour les corrélations
 library(readr)
 corr <- read.delim("Desktop/test_corr.csv", sep = ";")
 
@@ -6,55 +7,39 @@ head(corr)
 dat$Nom_vaccin <- as.factor(dat$Nom_vaccin)
 head(corr)
 
+#####################################################################
+# Analyses de corrélations
+####################################################################
 
-library(ggplot2)
-# Changer la taille des points
-graphe <-ggplot(corr, aes(x=GMT_Vaccin, y=Efficacite_., label = rownames(Nom_vaccin))) + geom_point(aes(size=Cas)) + geom_label(aes(label = Nom_vaccin), vjust = 2 ) 
-graphe
-sp <- graphe + xlim(10,5000)+ ylim(40, 99)
-sp
-sp + coord_trans(x="log2", y="log2")
-sp+ + geom_smooth(method=lm, formula= y~x)
-
-
+# Corrélation de rang de spearman entre efficacité et GMT neutralisant
 library("ggpubr")
-ggscatter(corr, x = "GMT_Vaccin", y = "Efficacite_.", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "spearman",
-          xlab = "Miles/(US) gallon", ylab = "Weight (1000 lbs)")
-
-
-
 p <- ggscatter(corr, x = "GMT_Vaccin", y = "Efficacite_.", repel = TRUE,
-          color = "black", size = "Cas", label = "Nom_vaccin", label.rectangle = TRUE,# Points color, shape and size
+          color = "black", size = "Cas", label = "Nom_vaccin", label.rectangle = TRUE,
           add = "reg.line",  # Add regressin line
-          add.params = list(color = "orange", linetype="dashed"), # Customize reg. line
-          conf.int = TRUE, # Add confidence interval
+          add.params = list(color = "orange", linetype="dashed"), 
+          conf.int = FALSE, # Add confidence interval
           cor.coef = FALSE, # Add correlation coefficient. see ?stat_cor
           cor.method = "spearman"
 )
 p+ scale_y_continuous(breaks=c(20,50,60,70,80,90,95,99)) + coord_trans(x="log2") +scale_x_continuous(breaks=c(10, 50, 100, 500,1000,4000))
-
 ggpar(p, xscale= "log2", xlim=c(10,5000), ylim=c(40,99), xlab = "SARS-Cov-2 neutralization (GMT)", ylab="Efficacité des vaccins" )+ scale_y_continuous(breaks=c(0,20,50,60,70,80,90,95,99)) + scale_x_log10(breaks=c(10,50,100,500,1000,5000))+ stat_cor(method = "spearman", label.x = 1, label.y = 99)
 
 
+# Corrélation de rang de spearman entre efficacité et GMT IgG ELISA
 p3 <- ggscatter(corr, x = "GMT_Elisa", y = "Efficacite_.",repel = TRUE,
-               color = "black", size = "Cas", label = "Nom_vaccin", label.rectangle = TRUE,# Points color, shape and size
+               color = "black", size = "Cas", label = "Nom_vaccin", label.rectangle = TRUE,
                add = "reg.line",  # Add regressin line
                add.params = list(color = "red", linetype="dashed"), # Customize reg. line
-               conf.int = TRUE, # Add confidence interval
+               conf.int = FALSE, # Add confidence interval
                cor.coef = FALSE, # Add correlation coefficient. see ?stat_cor
                cor.method = "spearman"
 )
 p3+ scale_y_continuous(breaks=c(20,50,60,70,80,90,95,99)) + coord_trans(x="log2") +scale_x_continuous(breaks=c(10, 50, 100, 500,1000,4000))
-
 library(scales)
 ggpar(p3, ylim=c(40,99), xlab = "SARS-Cov-2 Spike IgG ELISA", ylab="Efficacité des vaccins" )+ scale_y_continuous(breaks=c(0,20,50,60,70,80,90,95,99)) + stat_cor(method = "spearman", label.x = 3, label.y = 99) + scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),labels = trans_format("log10", math_format(10^.x)))
 
 
-
-
-
+# Corrélation de rang de spearman entre efficacité et ratio GMT neutralisant/Convalescents
 p1 <- ggscatter(corr, x = "Vaccin.HCS", y = "Efficacite_.",
                color = "black", size = "Cas", label = "Nom_vaccin", repel = TRUE,label.rectangle = TRUE,# Points color, shape and size
                add = "reg.line",  # Add regressin line
@@ -63,46 +48,61 @@ p1 <- ggscatter(corr, x = "Vaccin.HCS", y = "Efficacite_.",
                cor.coef = TRUE, # Add correlation coefficient. see ?stat_cor
                cor.method = "spearman"
 )
-
 p1
 ggpar(p1, xlim=c(0.1,5), ylim=c(40,99), xlab = "SARS-Cov-2 neutralisation (ratio Vaccinés/Convalescents)", ylab="Efficacité des vaccins (%)" )+ scale_y_log10(breaks=c(0,20,50,60,70,80,90,95,99)) + scale_x_log10(breaks=c(0.1,0.2,0.5,0.8,1,1.5,2,3,5))
 
 
+# Corrélation de rang de spearman entre efficacité et ratio GMT IgG ELISA/Convalescents
 p2 <- ggscatter(corr, x = "Vaccin.HCSElisa", y = "Efficacite_.",
                 color = "black", size = "Cas", label = "Nom_vaccin", repel = TRUE,label.rectangle = TRUE,# Points color, shape and size
                 add = "reg.line",  # Add regressin line
                 add.params = list(color = "red", linetype="dashed"), # Customize reg. line
-                conf.int = TRUE, # Add confidence interval
+                conf.int = FALSE, # Add confidence interval
                 cor.coef = TRUE, # Add correlation coefficient. see ?stat_cor
                 cor.method = "spearman"
 )
-
-?stat_cor
 p2
 ggpar(p2, xlim=c(0.1,20), ylim=c(40,99), xlab = "SARS-Cov-2 neutralisation (ratio Vaccinés/Convalescents)", ylab="Efficacité des vaccins (%)" )+ scale_y_continuous(breaks=c(0,20,50,60,70,80,90,95,99)) + scale_x_log10(breaks=c(0.1,0.2,0.5,0.8,1,1.5,2,3,5, 15, 20)) + stat_cor(method = "spearman", label.x=3, label.y = 97) 
 
-?scale_y_discrete
-
+# Etude des corrélations de Spearman et variance expliqué (carré du coefficient de pearson) sans graphique
+# Ratio neutralisant/Convalesents
 res <- cor.test(corr$Vaccin.HCS, corr$Efficacite_., 
                 method = "spearman")
 res
+res4 <- cor.test(corr$Vaccin.HCS, corr$Efficacite_., 
+                method = "pearson")
+((res4$estimate)^2)*100 # Variance expliquée en pourcentage
 
+# Ratio IgG Elisa/Convalesents
+cor.test(corr$Vaccin.HCSElisa, corr$Efficacite_., 
+                method = "spearman")
+res6 <- cor.test(corr$Vaccin.HCSElisa, corr$Efficacite_., 
+                 method = "pearson")
+((res6$estimate)^2)*100 # Variance expliquée en pourcentage
+
+# Efficacité et GMT ELISA
 cor.test( ~ GMT_Elisa + Efficacite_., 
           data=corr,
-          method = "pearson",
+          method = "spearman",
           conf.level = 0.95)
-0.2906975^2
-res <- cor.test(corr$Vaccin.HCS, corr$Efficacite_., 
+res5 <- cor.test(corr$GMT_Elisa, corr$Efficacite_., 
                 method = "pearson")
-res$estimate^2
+((res5$estimate)^2)*100
+
+# Efficacité et GMT neutralisant
+cor.test( ~ GMT_Vaccin + Efficacite_., 
+          data=corr,
+          method = "spearman",
+          conf.level = 0.95)
+res7 <- cor.test(corr$GMT_Vaccin, corr$Efficacite_., 
+                 method = "pearson")
+((res7$estimate)^2)*100
 
 
 ############################################
+# Meta-analyse avec le package métafor
+###########################################
 library(metafor)
-dat$ai <- as.numeric(as.character(dat$ai))
-dat$ci <- as.numeric(as.character(dat$ci))
-dat$n1i <- as.numeric(as.character(dat$n1i))
-dat$n2i <- as.numeric(as.character(dat$n2i))
 dat  <-  read.delim("Desktop/Metadonnees.csv", sep = ";")
 dat1 <-  escalc ( measure = "RR" , ai = ai, bi=bi, ci = ci, di=di, data = dat)
 dat1
@@ -110,11 +110,13 @@ print(dat1, row.names = FALSE)
 
 res <- rma(ai = ai, bi = bi, ci = ci, di = di, data = dat1, measure = "RR")
 res
+# Resultat du RR moyen entre les études 0.18
 predict(res, transf=exp)
 
 
 ?forest
- 
+
+# Creation du forest plot 
 forest(res, slab = paste(dat1$Nom_vaccin), xlim = c(-16, 6), at = log(c(0.05, 0.25, 1, 4)), atransf = exp, ilab = cbind(dat1$ai, dat1$bi, dat1$ci, dat1$di),ilab.xpos = c(-9.5, -8, -6, -4.5), cex = 0.75, header="Vaccins")
 op <- par(cex = 0.5, font = 2) 
 text(c(-9.5, -8, -6, -4.5), 15, c("Covid+", "Covid-", "Covid+", "Covid-")) 
@@ -123,32 +125,32 @@ text(-16, 15, "Vaccins", pos = 4)
 text(6, 15, "Risque Relatif [95% CI]", pos = 2) 
 par(op)
 
-### add text with Q-value, dfs, p-value, and I^2 statistic
+### Ajout du texte Q-value, dfs, p-value, and I^2 statistique au forest plot
 text(-16, -1, pos=4, cex=0.75, bquote(paste("RE Model (Q = ",
                                             .(formatC(res$QE, digits=2, format="f")), ", df = ", .(res$k - res$p),
                                             ", p = ", .(formatC(res$QEp, digits=2, format="f")), "; ", I^2, " = ",
                                             .(formatC(res$I2, digits=1, format="f")), "%)")))
 
-?profile
-
-profile ( res, xlim = c ( 0.01 , 4 ) , steps = 100 , log = "x" , cex = 0 , lwd = 2 , cline = TRUE ) 
-confint ( res, type = "PL" )
-abline (v = c(0.2698 , 3.9193), lty = "dashed", col="red" )
 
 
+# Modèle à effet fixe
 res1 <- rma(yi,vi, data=dat1, method = "FE")
 res1
 predict(res1, transf=exp)
 
-forest(res1, slab = paste(dat1$Nom_vaccin), xlim = c(-16, 6), at = log(c(0.05, 0.25, 1, 4)), atransf = exp, ilab = cbind(dat1$ai, dat1$bi, dat1$ci, dat1$di),ilab.xpos = c(-9.5, -8, -6, -4.5), cex = 0.75, header="Vaccins")
-op <- par(cex = 0.5, font = 2) 
+#Modèle à effet aléatoire
+res10 <- rma(yi,vi, data=dat1, method = "REML")
+res10
+predict(res10, transf=exp)
 
+#Modèle à effet mixte en rajoutant la variable du ratio comme variable modératrice.
 res2 <-  rma (yi, vi, mods = ~ Vaccin.HCS, data = dat1, method = "ML" ) 
 res2
 
-predict(res2, newmods = cbind(seq(from = 3.4, to = 16, by = 1.5)),transf = exp, addx = TRUE)
-
-preds <- predict(res2, newmods = cbind(0.86:10), transf = exp) 
+# Prédiction basé sur modèle à effet mixte
+predict(res2, newmods = cbind(seq(from = 0.7, to = 16, by = 1.5)),transf = exp, addx = TRUE)
+# Estimation pour vaccin Curevac : Ratio = 0.70 donc efficacité = 65% (1-0.35)*100
+preds <- predict(res2, newmods = cbind(0.2:10), transf = exp) 
 wi <- 1/sqrt(dat1$vi)
 size <- 0.5 + 3 * (wi - min(wi))/(max(wi) - min(wi))
 ?plot
@@ -211,42 +213,22 @@ NNVICinf
 library(ggplot2)
 d=data.frame(Vaccins=c("Pfizer/BioNTech","Moderna","Gamaleya","Oxford/AstraZeneca","Sinovac","Novarax","Janssen"), mean=c(NNV), lower=c(NNVICinf), upper=c(NNVICsup))
 d
+# Test 1 graphe
 ggplot() + geom_pointrange(data=d, mapping=aes(x=Vaccins, y=mean, ymin=upper, ymax=lower), size=1, color="red", fill="white", shape=22) 
 
-
-# Create a simple example dataset
-df <- data.frame(
-  Vaccins = factor(c("Pfizer/BioNTech","Moderna","Gamaleya","Oxford/AstraZeneca","Sinovac","Novarax","Janssen")),
-  NNV = c(126,81,325,52,54,140,91),
-  RRR = c(94.6,94.1,74.2,66.2,50.1,89.4,65.3),
-  VaccinHCS = c(corr$Vaccin.HCS),
-  VaccinHCSElisa = c(corr$Vaccin.HCSElisa),
-  lowerNNV = c(NNVICsup),
-  lowerRRR = c(RRRICsup)*100,
-  upperNNV = c(NNVICinf),
-  upperRRR = c(RRRICinf)*100
-)
-
-?geom_label
-p <- ggplot(df, aes(Vaccins, RRR, colour = Groupe))
-p + geom_pointrange(aes(ymin = upperNNV, ymax = lowerNNV))+ geom_pointrange(aes(y= RRR/0.2, ymin = lowerRRR, ymax = upperRRR)) + geom_label(aes(label = RRR)) + theme_classic() + scale_y_continuous(sec.axis = sec_axis(~ . *0.2, name = "RRR"))
-
-p <- ggplot(dat, aes(x = Nom_vaccin))
-p <- p + geom_line(aes(y = NNV, colour = "Temperature"))
-
-# A few constants
+# Graphe final
 library(ggplot2)
 library(dplyr)
-library(patchwork) # To display 2 charts together
+library(patchwork) 
 library(hrbrthemes)
 coeff=0.2
-temperatureColor <- "#0099CC"
-priceColor <- "#F6B113"
+Color1 <- "#0099CC"
+Color2 <- "#F6B113"
 
 p <- ggplot(df, aes(x=Vaccins),label=labelNNV) +
   
-  geom_pointrange( aes(y=NNV,ymin = upperNNV, ymax = lowerNNV), size=0.5, color=temperatureColor) + 
-  geom_pointrange( aes(y=RRR/coeff, ymin = lowerRRR/coeff, ymax = upperRRR/coeff), size=0.5, color=priceColor)+
+  geom_pointrange( aes(y=NNV,ymin = upperNNV, ymax = lowerNNV), size=0.5, color=Color1) + 
+  geom_pointrange( aes(y=RRR/coeff, ymin = lowerRRR/coeff, ymax = upperRRR/coeff), size=0.5, color=Color2)+
   
   scale_y_continuous(
     
@@ -259,10 +241,11 @@ p <- ggplot(df, aes(x=Vaccins),label=labelNNV) +
   theme_classic() +
   
   theme(
-    axis.title.y = element_text(color = temperatureColor, size=13),
-    axis.title.y.right = element_text(color = priceColor, size=13)
+    axis.title.y = element_text(color = Color1, size=13),
+    axis.title.y.right = element_text(color = Color2, size=13)
   )
 p
+
 #######################################################################
 # Severe Cases
 #######################################################################
